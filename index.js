@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // Middleware.
 app.use(cors());
@@ -28,6 +28,27 @@ async function run() {
       const query = {};
       const task = await taskCollection.find(query).toArray();
       res.send(task)
+    })
+
+    app.delete('/task/:id', async (req, res) => {
+      const id = req.params.id
+      const query = { _id: ObjectId(id) };
+      const result = await taskCollection.deleteOne(query);
+      res.send(result)
+    })
+
+    app.put('/taskComplete/:id', async (req, res) => {
+      const id = req.params.id;
+      const complete = req.body.completeStatus
+      const filter = { _id: ObjectId(id) };
+      const options = { upset: true }
+      const updateSatus = {
+        $set: {
+          complete: complete
+        }
+      };
+      const result = await taskCollection.updateOne(filter, updateSatus, options);
+      res.send({ message: 'Task Completed.' })
     })
   }
   finally {
